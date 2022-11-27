@@ -1,0 +1,169 @@
+<html>
+  <head>
+    <title>고양이 사진첩!</title>
+    <link rel="stylesheet" href="./src/styles/style.css">
+  </head>
+  <body>
+    <h1>고양이 사진첩</h1>
+    <main class="App">
+      <nav class="Breadcrumb">
+        <div>root</div>
+        <!-- <div>노란고양이</div> -->
+      </nav>
+      <div class="Nodes">
+        <!-- <div class="Node">
+          <img src="./assets/prev.png">
+        </div>
+        <div class="Node">
+          <img src="./assets/directory.png">
+          <div>2021/04</div>
+        </div>
+        <div class="Node">
+          <img src="./assets/file.png">
+          <div>하품하는 사진</div> -->
+        </div>
+      </div>
+    </main>
+    <!-- Loading Layer sample markup -->
+    
+    <div class="Modal Loading">
+      <div class="content">
+        <img src="./assets/nyan-cat.gif">
+      </div>
+    </div>
+
+    <!-- ImageViewer sample markup -->
+    
+    <div class="Modal ImageViewer">
+      <div class="content">
+        <img src="" >
+    </div>
+   
+  </body>
+  <script>
+    const nodes = document.querySelector('.Nodes')
+    const breadcrumb = document.querySelector('.Breadcrumb')
+    const loading = document.querySelector('.Loading')
+    const imageViewer = document.querySelector('.ImageViewer')
+    imageViewer.style.display = 'none'
+
+    const cacheData = {}
+
+    window.onload = async function(){
+      const data = await fetch("https://l9817xtkq3.execute-api.ap-northeast-2.amazonaws.com/dev")
+      .then(response=>{
+        loading.style.display = 'none'
+        return response.json()
+      })
+      .catch(err=>{
+        alert("에러발생 새로고침됩니다")
+        location.reload()
+      })
+      console.log(data)
+      const nodeHtml = makeHtml(data)
+      nodes.innerHTML = nodeHtml
+      cacheData.root = data
+    }
+
+    function makeHtml(data){
+      const nodeHtml = data.map(el=>{
+        return el.type === "DIRECTORY" ? 
+        `
+          <div class='Node' onclick="moveDir('${el.id}+${el.name}')">
+            <img src='./assets/${el.type.toLowerCase()}.png'>  
+            <div>${el.name}</div>
+          </div>
+        `
+        :
+        `
+          <div class='Node' onclick="viewImg('${el.filePath}')">
+            <img src='./assets/${el.type.toLowerCase()}.png'>  
+            <div>${el.name}</div>
+          </div>
+        `
+      }).join('').replaceAll(",",'')
+      return nodeHtml
+    }
+
+    async function moveDir(dirData){
+      const [dirId, dirName] = dirData.split("+")
+      breadcrumb.innerHTML += `
+        <div>${dirName}</div>
+      `
+      if(!cacheData[dirName])loading.style.display = 'block'
+      const data = cacheData[dirName] 
+      ? cacheData[dirName]
+      : await fetch(`https://l9817xtkq3.execute-api.ap-northeast-2.amazonaws.com/dev/${dirId}`)
+      .then(response=>{
+        loading.style.display = 'none'
+        return response.json()
+      })
+      .catch(err=>{
+        alert("에러발생 새로고침됩니다")
+        location.reload()
+      })
+      console.log(data)
+      const nodeHtml = makeHtml(data)
+      cacheData[dirName] = data
+
+      const allRoots = breadcrumb.querySelectorAll('div')
+      const preRootName = allRoots[allRoots.length-2].innerText
+      nodes.innerHTML = `
+        <div class="Node" onclick="moveBackward('${preRootName}')">
+            <img src="./assets/prev.png">
+        </div>
+      `
+      nodes.innerHTML += nodeHtml
+    }
+
+    function moveBackward(rootName){
+      const data = cacheData[rootName]
+      const nodeHtml = makeHtml(data)
+      let allRoots = breadcrumb.querySelectorAll('div')
+      breadcrumb.removeChild(allRoots[allRoots.length-1])
+      // 삭제됐으니깐 배열 다시 업데이트
+      allRoots = breadcrumb.querySelectorAll('div')
+      nodes.innerHTML = ""
+      if(rootName !== "root"){
+        const preRootName = allRoots[allRoots.length-2].innerText
+        nodes.innerHTML = `
+          <div class="Node" onclick="moveBackward('${preRootName}')">
+              <img src="./assets/prev.png">
+          </div>
+        `
+      }
+      nodes.innerHTML += nodeHtml
+    }
+
+    async function viewImg(filePath){
+      // loading.style.display = 'block'
+      // const data = await fetch(`https://fe-dev-matching-2021-03-serverlessdeploymentbuck-1ooef0cg8h3vq.s3.ap-northeast-2.amazonaws.com/public${filePath}`,{mode:"no-cors"})
+      // .then(response=>{
+      //   loading.style.display = 'none'
+      //   return response.blob()
+      // })
+      // .then(blob => {
+      //   const objUrl = URL.createObjectURL(blob);
+      //   // imageViewer.querySelector('img').src = objUrl
+      //   // console.log(blob)
+      //   // console.log(objUrl)
+      //   // imageViewer.style.display = 'block'
+      // })
+      // imageViewer.querySelector('img').src = data
+      imageViewer.querySelector('img').src = `https://fe-dev-matching-2021-03-serverlessdeploymentbuck-1ooef0cg8h3vq.s3.ap-northeast-2.amazonaws.com/public${filePath}`
+      imageViewer.style.display = 'block'
+
+      // .catch(err=>alert("에러발생 새로고침하세요"))
+      // await fetch(`https://fe-dev-matching-2021-03-serverlessdeploymentbuck-1ooef0cg8h3vq.s3.ap-northeast-2.amazonaws.com/public${filePath}`) 
+      // .then(res => res.blob())
+      // .then(blob => {
+      // console.log(blob)})
+  
+      // const objectURL = URL.createObjectURL(blob);
+      // console.log(objectURL);
+      // console.log(data)
+
+      // imageViewer.style.display = 'block'
+    }
+  </script>
+</html>
