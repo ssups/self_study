@@ -8,6 +8,7 @@ const useWebSocket = Url => {
   useEffect(() => {
     // if (isConnected) return;
     const ws = new WebSocket(Url);
+    console.log("@@ initWebsocket");
     ws.onopen = () => {
       setWs(ws);
       console.log("connected to " + Url);
@@ -16,7 +17,7 @@ const useWebSocket = Url => {
       setWs(null);
       console.log("disconnected from " + Url);
       console.log(err);
-      //   window.location.reload();
+      // window.location.reload();
     };
     ws.onerror = err => {
       setWs(null);

@@ -3,6 +3,7 @@ import { Routes, Route, BrowserRouter as Router } from "react-router-dom";
 import Main from "./pages/Main/Main";
 import useWebSocket from "./hooks/useWebSocket";
 import { useEffect, useRef, createContext } from "react";
+import websocket from "./singleton";
 
 function App() {
   const upbitWsURL = "wss://api.upbit.com/websocket/v1";

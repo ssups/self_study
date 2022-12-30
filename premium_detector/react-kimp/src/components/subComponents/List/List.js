@@ -7,16 +7,9 @@ import axios from "axios";
 // import wscat from "wscat";
 // const WebSocket = require("ws");
 
-const List = ({ updatePrice, market }) => {
-  const [price, setPrice] = useState();
-  useEffect(() => {
-    if (!updatePrice) return;
-    setPrice(updatePrice);
-  }, [updatePrice]);
+const List = ({ color, market, price }) => {
   return (
-    <div>
-      {/* <span>티커 : {market}</span>
-      <span>가격 : {price}</span> */}
+    <div style={{ color: color }}>
       {market} : {price && (price * 1).toLocaleString()}
     </div>
   );
